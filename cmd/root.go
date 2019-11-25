@@ -17,21 +17,23 @@ package cmd
 
 import (
   "fmt"
-  "os"
+  "github.com/mitchellh/go-homedir"
   "github.com/spf13/cobra"
-
-  homedir "github.com/mitchellh/go-homedir"
   "github.com/spf13/viper"
-
+  "os"
 )
 
 
 var cfgFile string
-
+var token string
+var username string
+var password string
+var hostname string
+var port int
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-  Use:   "transmission-telegram-bot",
+  Use:   "app",
   Short: "A brief description of your application",
   Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -60,8 +62,12 @@ func init() {
   // Cobra supports persistent flags, which, if defined here,
   // will be global for your application.
 
-  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.transmission-telegram-bot.yaml)")
-
+  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.app.yaml)")
+  rootCmd.PersistentFlags().StringVar(&token, "bot-token", "", "authentication token for Telegram bot API")
+  rootCmd.PersistentFlags().StringVar(&username, "username", "", "username for Transmission remote server")
+  rootCmd.PersistentFlags().StringVar(&password, "password", "", "password for Transmission remote server")
+  rootCmd.PersistentFlags().StringVar(&hostname, "hostname", "", "hostname for Transmission remote server")
+  rootCmd.PersistentFlags().IntVar(&port, "port", 9091, "port for Transmission remote server (default is 9091)")
 
   // Cobra also supports local flags, which will only run
   // when this action is called directly.
@@ -82,9 +88,9 @@ func initConfig() {
       os.Exit(1)
     }
 
-    // Search config in home directory with name ".transmission-telegram-bot" (without extension).
+    // Search config in home directory with name ".app" (without extension).
     viper.AddConfigPath(home)
-    viper.SetConfigName(".transmission-telegram-bot")
+    viper.SetConfigName(".app")
   }
 
   viper.AutomaticEnv() // read in environment variables that match

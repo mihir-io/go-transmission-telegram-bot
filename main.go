@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/mihir-io/transmission-telegram-bot/cmd"
+import "transmission-telegram-bot/cmd"
 
 func main() {
   cmd.Execute()
