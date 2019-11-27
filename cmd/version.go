@@ -17,9 +17,10 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
 )
+
+var version string
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -32,7 +33,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("version called")
+		if version == "" {
+			fmt.Println("version undefined")
+		} else {
+			fmt.Printf("transmission-telegram-bot v%s\n", version)
+		}
 	},
 }
 

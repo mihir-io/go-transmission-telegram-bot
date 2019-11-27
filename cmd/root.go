@@ -29,6 +29,8 @@ var token string
 var username string
 var password string
 var hostname string
+var verbose bool
+var https bool
 var port int
 
 // rootCmd represents the base command when called without any subcommands
@@ -64,9 +66,11 @@ func init() {
 
   rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.app.yaml)")
   rootCmd.PersistentFlags().StringVar(&token, "bot-token", "", "authentication token for Telegram bot API")
-  rootCmd.PersistentFlags().StringVar(&username, "username", "", "username for Transmission remote server")
-  rootCmd.PersistentFlags().StringVar(&password, "password", "", "password for Transmission remote server")
+  rootCmd.PersistentFlags().StringVar(&username, "username", "", "username for Transmission remote server (only use if auth is enabled)")
+  rootCmd.PersistentFlags().StringVar(&password, "password", "", "password for Transmission remote server (only use if auth is enabled)")
   rootCmd.PersistentFlags().StringVar(&hostname, "hostname", "", "hostname for Transmission remote server")
+  rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "run bot with verbose log messages")
+  rootCmd.PersistentFlags().BoolVar(&https, "https", true, "use HTTPS for Transmission RPC calls (defaults to true)")
   rootCmd.PersistentFlags().IntVar(&port, "port", 9091, "port for Transmission remote server (default is 9091)")
 
   // Cobra also supports local flags, which will only run
@@ -93,7 +97,13 @@ func initConfig() {
     viper.SetConfigName(".app")
   }
 
-  viper.AutomaticEnv() // read in environment variables that match
+  _ = viper.BindPFlag("bot-token", rootCmd.PersistentFlags().Lookup("bot-token"))
+  _ = viper.BindPFlag("username", rootCmd.PersistentFlags().Lookup("username"))
+  _ = viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
+  _ = viper.BindPFlag("hostname", rootCmd.PersistentFlags().Lookup("hostname"))
+  _ = viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+  _ = viper.BindPFlag("https", rootCmd.PersistentFlags().Lookup("https"))
+  _ = viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 
   // If a config file is found, read it in.
   if err := viper.ReadInConfig(); err == nil {

@@ -33,13 +33,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		bc := app.BotConfig{
-			Token:    viper.GetString("token"),
+			Token:    viper.GetString("bot-token"),
 			Username: viper.GetString("username"),
 			Password: viper.GetString("password"),
 			Hostname: viper.GetString("hostname"),
 			Port:     viper.GetInt("port"),
+			HTTPS:    viper.GetBool("https"),
 		}
-		app.StartBot(&bc, false)
+		app.StartBot(&bc, viper.GetBool("verbose"))
 	},
 }
 
