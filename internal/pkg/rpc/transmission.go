@@ -31,7 +31,7 @@ func (tc *TransmissionConnection) AddTorrent(url string) (*transmissionrpc.Torre
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "torrent-*.torrent")
 	if err != nil {return nil, err}
 	defer os.Remove(tmpFile.Name())
-	log.Info(fmt.Sprintf("Created temporary torrent at %s.\n", tmpFile.Name()))
+	log.Info(fmt.Sprintf("Created temporary torrent file at %s.\n", tmpFile.Name()))
 
 	resp, err := http.Get(url)
 	if err != nil {return nil, err}
@@ -57,15 +57,31 @@ func (tc *TransmissionConnection) RemoveTorrent(id int, deleteData bool) error {
 	}
 
 	err := tc.TorrentRemove(&rp)
-	log.Info(fmt.Sprintf("Removed torrent ID %d. Delete data: %v\n", id, deleteData))
+		if err == nil {
+			log.Info(fmt.Sprintf("Removed torrent ID %d. Delete data: %v\n", id, deleteData))
+		}
 	return err
 }
 
-func (tc *TransmissionConnection) PauseOrResumeTorrent(id int){
-
+func (tc *TransmissionConnection) PauseTorrent(id int) error {
+	ids := []int64{int64(id)}
+	err := tc.TorrentStopIDs(ids)
+	if err == nil {
+		log.Info(fmt.Sprintf("Stopped torrent ID %d.\n", id))
+	}
+	return err
 }
 
-func (tc *TransmissionConnection) IsConnected() (bool, error) {
-	ok, _, _, err := tc.RPCVersion()
-	return ok, err
+func (tc *TransmissionConnection) StartTorrent(id int) error {
+	ids := []int64{int64(id)}
+	err := tc.TorrentStartIDs(ids)
+	if err == nil {
+		log.Info(fmt.Sprintf("Started torrent ID %d.\n", id))
+	}
+	return err
+}
+
+func (tc *TransmissionConnection) IsConnected() (bool, int64, int64, error) {
+	ok, serverVersion, serverMinimumVersion, err := tc.RPCVersion()
+	return ok, serverVersion, serverMinimumVersion, err
 }
