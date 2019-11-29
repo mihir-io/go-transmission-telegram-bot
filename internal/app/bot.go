@@ -32,7 +32,7 @@ func StartBot(config *BotConfig, verbose bool){
 	ok, serverVersion, serverMinimumVersion, err := tc.IsConnected()
 	if err != nil {log.Fatal(err)}
 	if !ok {
-		log.Fatal(fmt.Sprintf("Remote transmission RPC version (v%d) is incompatible with the transmission library (v%d): remote needs at least v%d",
+		log.Error(fmt.Sprintf("Remote transmission RPC version (v%d) is incompatible with the transmission library (v%d): remote needs at least v%d",
 			serverVersion, transmissionrpc.RPCVersion, serverMinimumVersion))
 	}
 
@@ -42,47 +42,84 @@ func StartBot(config *BotConfig, verbose bool){
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+		id := update.Message.Chat.ID
+		text := update.Message.Text
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
 		}
 		fmt.Println(update.Message.Chat.ID)
 
 		if update.Message.IsCommand() {
-			if update.Message.Text == "/start"{
-				_, _ = bot.Send(start(update.Message.Chat.ID))
+			if text == "/start"{
+				_, _ = bot.Send(start(id))
 			}
 
-			if update.Message.Text == "/list" {
+			if strings.HasPrefix(text, "/list") {
 				_, _ = bot.Send(list(update.Message.Chat.ID, tc))
 			}
 
-			if strings.HasPrefix(update.Message.Text, "/play") {
+			if strings.HasPrefix(text, "/play") {
 				tokens := strings.Fields(update.Message.Text)
 				if len(tokens) <= 1 {
-					_, _ = bot.Send(tgbotapi.MessageConfig{Text:"/play takes 1 arg: Torrent ID."})
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/play takes 1 arg: Torrent ID."))
+					continue
 				}
 
 				torrentID, err := strconv.Atoi(tokens[1])
 				if err != nil {
-					_, _ = bot.Send(tgbotapi.MessageConfig{Text:"/play takes an integer argument: Torrent ID."})
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/play takes an integer argument: Torrent ID."))
+					continue
 				}
 
-					_, _ = bot.Send(play(update.Message.Chat.ID, torrentID,tc))
+					_, _ = bot.Send(play(id, torrentID,tc))
 			}
 
-			if strings.HasPrefix(update.Message.Text, "/pause") {
-				tokens := strings.Fields(update.Message.Text)
+			if strings.HasPrefix(text, "/pause") {
+				tokens := strings.Fields(text)
 				if len(tokens) <= 1 {
-					_, _ = bot.Send(tgbotapi.MessageConfig{Text:"/pause takes 1 arg: Torrent ID."})
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/pause takes 1 arg: Torrent ID."))
+					continue
 				}
 
 				torrentID, err := strconv.Atoi(tokens[1])
 				if err != nil {
-					_, _ = bot.Send(tgbotapi.MessageConfig{Text:"/pause takes an integer argument: Torrent ID."})
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/pause takes an integer argument: Torrent ID."))
+					continue
 				}
 
-				_, _ = bot.Send(pause(update.Message.Chat.ID, torrentID,tc))
+				_, _ = bot.Send(pause(id, torrentID,tc))
 			}
+
+			if strings.HasPrefix(text, "/add") {
+				tokens := strings.Fields(text)
+				if len(tokens) <= 1 {
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/add takes 1 arg: Torrent file URL."))
+					continue
+				}
+
+				torrentFileURL := tokens[1]
+
+				_, _ = bot.Send(add(id, torrentFileURL, tc))
+			}
+
+			if strings.HasPrefix(text, "/remove"){
+				tokens := strings.Fields(text)
+				if len(tokens) <= 1 {
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/remove takes 1 arg: Torrent ID."))
+					continue
+				}
+
+				torrentID, err := strconv.Atoi(tokens[1])
+				if err != nil {
+					_, _ = bot.Send(tgbotapi.NewMessage(id, "/remove takes an integer argument: Torrent ID."))
+					continue
+				}
+
+				// Todo: Don't assume data deletion.
+				_, _ = bot.Send(remove(id, torrentID, true, tc))
+
+			}
+
 		}
 	}
 }
