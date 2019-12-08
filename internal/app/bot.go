@@ -15,22 +15,31 @@ type BotConfig struct {
 	Username string
 	Password string
 	Hostname string
+	AllowedUsers []string
 	Port int
 	HTTPS bool
 }
 
-func StartBot(config *BotConfig, verbose bool){
+func StartBot(config *BotConfig, verbose bool) {
 	log.Info(fmt.Sprintf("%+v", config))
 	bot, err := tgbotapi.NewBotAPI(config.Token)
-	if err != nil {log.Fatal(err)}
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Info(fmt.Sprintf("Authorized on account %s", bot.Self.UserName))
-	if err != nil {log.Fatal(err)}
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	tc, err := rpc.NewTransmissionConnection(config.Hostname, config.Port, config.Username, config.Password, config.HTTPS)
-	if err != nil {log.Fatal(err)}
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ok, serverVersion, serverMinimumVersion, err := tc.IsConnected()
-	if err != nil {log.Fatal(err)}
+	if err != nil {
+		log.Fatal(err)
+	}
 	if !ok {
 		log.Error(fmt.Sprintf("Remote transmission RPC version (v%d) is incompatible with the transmission library (v%d): remote needs at least v%d",
 			serverVersion, transmissionrpc.RPCVersion, serverMinimumVersion))
@@ -42,15 +51,30 @@ func StartBot(config *BotConfig, verbose bool){
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+
 		id := update.Message.Chat.ID
 		text := update.Message.Text
+
+		invalidUser := true // Assume the user is not authorized to use this bot instance...
+		for _, au := range config.AllowedUsers {
+			if au == update.Message.From.UserName {
+				invalidUser = false // unless they're in the bot's allowedUsers arg list
+			}
+		}
+
+		if invalidUser {
+			log.Info(fmt.Sprintf("Message from unauthorized user %s was received.", update.Message.From.UserName))
+			_, _ = bot.Send(tgbotapi.NewMessage(id, "You are not authorized to use this bot. This incident will be reported."))
+			continue
+		}
+
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
 		}
 		fmt.Println(update.Message.Chat.ID)
 
 		if update.Message.IsCommand() {
-			if text == "/start"{
+			if text == "/start" {
 				_, _ = bot.Send(start(id))
 			}
 
@@ -71,7 +95,7 @@ func StartBot(config *BotConfig, verbose bool){
 					continue
 				}
 
-					_, _ = bot.Send(play(id, torrentID,tc))
+				_, _ = bot.Send(play(id, torrentID, tc))
 			}
 
 			if strings.HasPrefix(text, "/pause") {
@@ -87,7 +111,7 @@ func StartBot(config *BotConfig, verbose bool){
 					continue
 				}
 
-				_, _ = bot.Send(pause(id, torrentID,tc))
+				_, _ = bot.Send(pause(id, torrentID, tc))
 			}
 
 			if strings.HasPrefix(text, "/add") {
@@ -102,7 +126,7 @@ func StartBot(config *BotConfig, verbose bool){
 				_, _ = bot.Send(add(id, torrentFileURL, tc))
 			}
 
-			if strings.HasPrefix(text, "/remove"){
+			if strings.HasPrefix(text, "/remove") {
 				tokens := strings.Fields(text)
 				if len(tokens) <= 1 {
 					_, _ = bot.Send(tgbotapi.NewMessage(id, "/remove takes 1 arg: Torrent ID."))
@@ -119,7 +143,6 @@ func StartBot(config *BotConfig, verbose bool){
 				_, _ = bot.Send(remove(id, torrentID, true, tc))
 
 			}
-
 		}
 	}
 }

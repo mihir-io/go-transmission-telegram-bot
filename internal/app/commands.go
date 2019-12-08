@@ -85,6 +85,7 @@ func add(chatID int64, torrentFileURL string, tc *rpc.TransmissionConnection) tg
 	return msg
 
 }
+
 func remove(chatID int64, torrentID int, deleteData bool, tc *rpc.TransmissionConnection) tgbotapi.MessageConfig {
 	s := strings.Builder{}
 

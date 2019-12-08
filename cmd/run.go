@@ -39,6 +39,7 @@ to quickly create a Cobra application.`,
 			Hostname: viper.GetString("hostname"),
 			Port:     viper.GetInt("port"),
 			HTTPS:    viper.GetBool("https"),
+			AllowedUsers: viper.GetStringSlice("allowed-users"),
 		}
 		app.StartBot(&bc, viper.GetBool("verbose"))
 	},

@@ -30,6 +30,7 @@ var username string
 var password string
 var hostname string
 var verbose bool
+var allowedUsers []string
 var https bool
 var port int
 
@@ -69,6 +70,7 @@ func init() {
   rootCmd.PersistentFlags().StringVar(&username, "username", "", "username for Transmission remote server (only use if auth is enabled)")
   rootCmd.PersistentFlags().StringVar(&password, "password", "", "password for Transmission remote server (only use if auth is enabled)")
   rootCmd.PersistentFlags().StringVar(&hostname, "hostname", "", "hostname for Transmission remote server")
+  rootCmd.PersistentFlags().StringSliceVar(&allowedUsers, "allowed-user", []string{}, "Telegram username of user authorized to access this bot instance (defaults to no one)")
   rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "run bot with verbose log messages")
   rootCmd.PersistentFlags().BoolVar(&https, "https", true, "use HTTPS for Transmission RPC calls (defaults to true)")
   rootCmd.PersistentFlags().IntVar(&port, "port", 9091, "port for Transmission remote server (default is 9091)")
@@ -101,6 +103,7 @@ func initConfig() {
   _ = viper.BindPFlag("username", rootCmd.PersistentFlags().Lookup("username"))
   _ = viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
   _ = viper.BindPFlag("hostname", rootCmd.PersistentFlags().Lookup("hostname"))
+  _ = viper.BindPFlag("allowed-users", rootCmd.PersistentFlags().Lookup("allowed-user"))
   _ = viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
   _ = viper.BindPFlag("https", rootCmd.PersistentFlags().Lookup("https"))
   _ = viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
