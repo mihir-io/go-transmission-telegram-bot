@@ -36,14 +36,11 @@ var port int
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-  Use:   "app",
-  Short: "A brief description of your application",
-  Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+  Use:   "transmission-telegram-bot",
+  Short: "A Telegram chatbot for managing torrents through Transmission",
+  Long: `A Telegram chatbot that provides basic torrent management in Transmission.
+It can add, stop, resume, and delete torrents, and supports limiting access to only
+certain users.`,
   // Uncomment the following line if your bare application
   // has an action associated with it:
   //	Run: func(cmd *cobra.Command, args []string) { },
@@ -65,7 +62,7 @@ func init() {
   // Cobra supports persistent flags, which, if defined here,
   // will be global for your application.
 
-  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.app.yaml)")
+  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.transmission-telegram-bot.json)")
   rootCmd.PersistentFlags().StringVar(&token, "bot-token", "", "authentication token for Telegram bot API")
   rootCmd.PersistentFlags().StringVar(&username, "username", "", "username for Transmission remote server (only use if auth is enabled)")
   rootCmd.PersistentFlags().StringVar(&password, "password", "", "password for Transmission remote server (only use if auth is enabled)")
@@ -96,7 +93,8 @@ func initConfig() {
 
     // Search config in home directory with name ".app" (without extension).
     viper.AddConfigPath(home)
-    viper.SetConfigName(".app")
+    viper.SetConfigName(".transmission-telegram-bot")
+    viper.SetConfigType("json")
   }
 
   _ = viper.BindPFlag("bot-token", rootCmd.PersistentFlags().Lookup("bot-token"))
